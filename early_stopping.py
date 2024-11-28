@@ -16,7 +16,7 @@ class EarlyStopping:
             torch.save(model.state_dict(), self.path)
         else:
             self.wait += 1
-            if self.counter >= self.patience:
+            if self.wait >= self.patience:
                 print('Early stopping')
                 return True
         return False
