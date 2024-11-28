@@ -6,19 +6,19 @@ import torch.nn.functional as F
 class EDLLoss(nn.Module):
     def __init__(self, num_classes=4, annealing_step=10, loss='mse'):
         super(EDLLoss, self).__init__()
+        assert loss in ['nll', 'ce', 'mse']
         self.num_classes = num_classes
         self.annealing_step = annealing_step
-        assert loss in ['nll', 'ce', 'mse']
         if loss == 'nll':
             self.loss_fn = self.negative_log_likelihood_loss
-            self.lst = ['nll']
+            self.loss_list = ['nll']
         elif loss == 'ce':
             self.loss_fn = self.cross_entropy_loss
-            self.lst = ['ce']
+            self.loss_list = ['ce']
         elif loss == 'mse':
             self.loss_fn = self.mean_squared_error_loss
-            self.lst = ['err', 'var', 'mse']
-        self.lst += ['loss', 'kl', 'reg', 'total']
+            self.loss_list = ['err', 'var', 'mse']
+        self.loss_list += ['loss', 'kl', 'reg', 'total']
 
     def kl_div_loss(self, alpha, y):
         N, K = alpha.shape
@@ -30,16 +30,16 @@ class EDLLoss(nn.Module):
     def negative_log_likelihood_loss(self, alpha, y):
         S = alpha.sum(dim=1, keepdims=True)
         nll_loss = (y*(torch.log(S) - torch.log(alpha))).sum()
-        d = {'nll': nll_loss.detach().cpu().item()}
-        d['loss'] = d['nll']
-        return nll_loss, d
+        losses = {'nll': nll_loss.detach().cpu().item()}
+        losses['loss'] = losses['nll']
+        return nll_loss, losses
 
     def cross_entropy_loss(self, alpha, y):
         S = alpha.sum(dim=1, keepdims=True)
         ce_loss = (y*(torch.digamma(S) - torch.digamma(alpha))).sum()
-        d = {'ce': ce_loss.detach().cpu().item()}
-        d['loss'] = d['ce']
-        return ce_loss, d
+        losses = {'ce': ce_loss.detach().cpu().item()}
+        losses['loss'] = losses['ce']
+        return ce_loss, losses
 
     def mean_squared_error_loss(self, alpha, y):
         S = alpha.sum(dim=1, keepdims=True)
@@ -47,13 +47,13 @@ class EDLLoss(nn.Module):
         err_loss = F.mse_loss(p_hat, y, reduction='sum')
         var_loss = (p_hat*(1 - p_hat)/(S + 1)).sum()
         mse_loss = err_loss + var_loss
-        d = {
+        losses = {
             'err': err_loss.detach().cpu().item(),
             'var': var_loss.detach().cpu().item(),
             'mse': mse_loss.detach().cpu().item(),
         }
-        d['loss'] = d['mse']
-        return mse_loss, d
+        losses['loss'] = losses['mse']
+        return mse_loss, losses
 
     def forward(self, input, target, epoch=None):
         alpha = input + 1
@@ -61,12 +61,12 @@ class EDLLoss(nn.Module):
         coefficient = 1. if epoch is None else min(1., epoch / self.annealing_step)
         kl_loss = self.kl_div_loss(alpha, y)
         regularization = coefficient * kl_loss
-        loss, d = self.loss_fn(alpha, y)
+        loss, losses = self.loss_fn(alpha, y)
         total_loss = loss + regularization
-        d['kl'] = kl_loss.detach().cpu().item()
-        d['reg'] = regularization.detach().cpu().item()
-        d['total'] = total_loss.detach().cpu().item()
-        return total_loss, d
+        losses['kl'] = kl_loss.detach().cpu().item()
+        losses['reg'] = regularization.detach().cpu().item()
+        losses['total'] = total_loss.detach().cpu().item()
+        return total_loss, losses
 
 
 if __name__ == '__main__':
@@ -76,6 +76,6 @@ if __name__ == '__main__':
     loss_fn = EDLLoss(num_classes=num_classes, loss='mse')
     target = torch.randint(num_classes, (batch_size,))
     input = 10 * torch.rand((batch_size, num_classes))
-    loss, d = loss_fn(input, target)
+    loss, losses = loss_fn(input, target)
     print(loss)
-    print(d)
+    print(losses)
