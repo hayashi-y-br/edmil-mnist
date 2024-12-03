@@ -134,7 +134,8 @@ class EAdditiveMIL(nn.Module):
         scores = {
             'attention': A.squeeze(2),  # N x K
             'contribution': P,  # N x K x num_classes
-            'feature': Z.contiguous().view(N, K, self.M)  # N x K x M
+            'feature': Z.contiguous().view(N, K, self.M),  # N x K x M
+            'original_feature': H  # N x K x M
         }
 
         return evidence, y_hat, scores
