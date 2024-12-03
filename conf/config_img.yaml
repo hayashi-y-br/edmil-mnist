@@ -1,0 +1,20 @@
+defaults:
+  - dataset: '012'
+  - model: EABMIL
+  - settings: config
+  - _self_
+
+hydra:
+  job:
+    chdir: true
+    config:
+      override_dirname:
+        exclude_keys:
+          - seed
+  sweep:
+    dir: /gs/bs/tga-mdl/hayashi-mdl
+    subdir: MNIST-IMAGES
+
+use_cuda: true
+seed: 0
+path: model_weights.pth

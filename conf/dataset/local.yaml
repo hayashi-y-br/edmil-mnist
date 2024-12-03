@@ -1,0 +1,14 @@
+root: ${hydra:runtime.cwd}/data
+train_size: 800
+valid_size: 200
+test_size: 200
+train_seed: 0
+valid_seed: 1
+test_seed: 2
+bag_size: 16
+blank_ratio_low: 25
+blank_ratio_high: 75
+target_numbers:
+  - 0
+  - 1
+  - 2
