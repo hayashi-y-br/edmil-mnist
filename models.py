@@ -67,7 +67,10 @@ class EABMIL(nn.Module):
 
         evidence = self.classifier(Z)  # N x num_classes
         y_hat = torch.argmax(evidence, dim=1)  # N
-        scores = {'attention': A.squeeze(1)}  # N x K
+        scores = {
+            'attention': A.squeeze(1),  # N x K
+            'feature': Z  # N x M
+        }
         return evidence, y_hat, scores
 
 
@@ -130,7 +133,8 @@ class EAdditiveMIL(nn.Module):
         y_hat = torch.argmax(evidence, dim=1)  # N
         scores = {
             'attention': A.squeeze(2),  # N x K
-            'contribution': P  # N x K x num_classes
+            'contribution': P,  # N x K x num_classes
+            'feature': Z.contiguous().view(N, K, self.M)  # N x K x M
         }
 
         return evidence, y_hat, scores
