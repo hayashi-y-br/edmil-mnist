@@ -104,6 +104,9 @@ def main(cfg: DictConfig):
                 elif key == 'feature':
                     feature = value.detach().cpu()[0]
                     save_tensor(feature, path='./scores/', filename=f'feature_{i}.csv')
+                elif key == 'original_feature':
+                    feature = value.detach().cpu()[0]
+                    save_tensor(feature, path='./scores/', filename=f'original_feature_{i}.csv')
     for key, value in test_metrics.items():
         value /= len(test_loader.dataset)
         test_metrics[key] = value
