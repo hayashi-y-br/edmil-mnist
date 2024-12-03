@@ -12,7 +12,8 @@ hydra:
         exclude_keys:
           - seed
   sweep:
-    dir: /gs/bs/tga-mdl/hayashi-mdl/MNIST-TEST/${model.name}
+    dir: /gs/bs/tga-mdl/hayashi-mdl/MNIST-TEST
+    subdir: ${model.name}
 
 use_cuda: true
 seed: 0
